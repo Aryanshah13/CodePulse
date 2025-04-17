@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors'); // Import cors
 const app = express();
 const http = require('http');
 const path = require('path');
@@ -7,6 +8,10 @@ const ACTIONS = require('./src/Action');
 
 const server = http.createServer(app);
 const io = new Server(server);
+
+// Use cors middleware
+app.use(cors());
+
 // Track active calls in rooms
 const activeCallRooms = new Set();
 app.use(express.static('build'));
