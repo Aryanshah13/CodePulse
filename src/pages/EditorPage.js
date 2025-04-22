@@ -34,8 +34,6 @@ const EditorPage = () => {
     const [language, setLanguage] = useState(languages[0].id);
     const [output, setOutput] = useState('');
     const codeRef = useRef(null); // Define codeRef
-    const inputRef = useRef(null); // Define inputRef
-    const [userInput, setUserInput] = useState(''); // Define userInput and setUserInput
     const [isCallActive, setIsCallActive] = useState(false); // Track call state
 
     useEffect(() => {
@@ -73,7 +71,6 @@ const EditorPage = () => {
                 socketRef.current.on(ACTIONS.DISCONNECTED, ({ socketId, username }) => {
                     console.log(`User ${username} disconnected with socket ID ${socketId}`);
                     
-                    // Replace this line
                     toast(`${username} left the room.`, {
                         style: {
                             border: '1px solid #3498db',
@@ -83,11 +80,8 @@ const EditorPage = () => {
                         icon: 'ℹ️',
                     });
                     
-                    // Update clients state to remove the disconnected user
                     setClients((prev) => prev.filter((client) => client.socketId !== socketId));
                     
-                    // If call is active and the disconnected user was part of it,
-                    // ensure their video feed is removed
                     if (isCallActive) {
                         socketRef.current.emit('user-left-call', { 
                             roomId, 
@@ -97,13 +91,11 @@ const EditorPage = () => {
                     }
                 });
 
-                // Listen for output event
                 socketRef.current.on('output', ({ output }) => {
                     console.log(`Received output: ${output}`);
                     setOutput(output);
                 });
 
-                // Replace the existing call-initiated event handler
                 socketRef.current.on('call-initiated', ({ from, username }) => {
                     console.log(`Received call initiation request from socket ID ${from}`);
                     toast((t) => (
@@ -157,7 +149,6 @@ const EditorPage = () => {
 
     const executeCode = useCallback(async () => {
         const code = codeRef.current;
-        const input = userInput; // Use the user input from the state
 
         const options = {
             method: 'POST',
@@ -169,7 +160,6 @@ const EditorPage = () => {
             body: JSON.stringify({
                 language_id: language,
                 source_code: btoa(code),
-                stdin: btoa(input),
                 base64_encoded: 'true',
                 wait: 'false',
                 fields: '*'
@@ -178,7 +168,6 @@ const EditorPage = () => {
 
         try {
             console.log('Sending code to Judge0 API:', code);
-            console.log('Input:', input);
             console.log('Language ID:', language);
 
             const response = await fetch('https://judge0-ce.p.rapidapi.com/submissions', options);
@@ -191,7 +180,7 @@ const EditorPage = () => {
             console.error('Error executing code:', error);
             setOutput(`Error: ${error.message}`);
         }
-    }, [language, userInput]);
+    }, [language]);
 
     const handleCodeExecution = async (token) => {
         console.log('Received token:', token);
@@ -276,13 +265,8 @@ const EditorPage = () => {
                         <option key={lang.id} value={lang.id}>{lang.name}</option>
                     ))}
                 </select>
-                <textarea
-                    placeholder="Input data"
-                    ref={inputRef}
-                    className="inputData"
-                    onChange={(e) => setUserInput(e.target.value)}
-                ></textarea>
-                <button className="btn executeBtn" onClick={executeCode}>Execute Code</button>
+                &nbsp; &nbsp;
+                <button className="btn executeBtn" onClick={executeCode}>Execute Code</button> 
                 <div className="output">
                     <h3>Output:</h3>
                     <textarea
@@ -292,8 +276,8 @@ const EditorPage = () => {
                         placeholder='Output will be displayed here'
                     />
                 </div>
-                <button className="btn startCallBtn" onClick={startCall}>Start Call</button> {/* Add Start Call button */}
-                {isCallActive && <VideoCall socketRef={socketRef} roomId={roomId} clients={clients} />} {/* Pass clients to VideoCall component */}
+                <button className="btn startCallBtn" onClick={startCall}>Start Call</button>
+                {isCallActive && <VideoCall socketRef={socketRef} roomId={roomId} clients={clients} />}
             </div>
         </div>
     );
