@@ -1,6 +1,7 @@
+// src/pages/Home.js
 import React, { useState, useEffect } from 'react';
-import axios from 'axios'; // Import axios
-import { v4 as uuidV4 } from 'uuid';
+import axios from 'axios';
+import { v4 as uuidV4, validate as uuidValidate } from 'uuid';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
@@ -31,6 +32,12 @@ const Home = () => {
     const joinRoom = () => {
         if (!roomId || !username) {
             toast.error('ROOM ID & username is required');
+            return;
+        }
+
+        // Validate UUID format before joining
+        if (!uuidValidate(roomId)) {
+            toast.error('Invalid Room ID format. Please use a valid RoomID.');
             return;
         }
 
